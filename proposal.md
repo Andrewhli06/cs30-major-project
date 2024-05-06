@@ -2,6 +2,11 @@
 
 ## Description
 Awesome Tanks-esque game (inspiration: Cool Math Games)
+- Awesome Tanks is a well known 2D shooter game on Cool Math Games, with 15 unique levels.
+  The primary objective of this game is to destroy all the enemy tank spawners without dying.
+  Through killing enemies and breaking crates, the player earns gold, which they can then spend
+  on upgrading specific attributes (armor, visibility, turret speed, movement speed). The character movement
+  is standard WASD, shooting requires mouse click, and the numbers 1-6 are used to switch weapons.
 
 ## Needs to Have List
 - Sound effects/background music
