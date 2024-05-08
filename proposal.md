@@ -10,12 +10,16 @@ Awesome Tanks-esque game (inspiration: Cool Math Games)
 
 ## Needs to Have List
 - Sound effects/background music
-- All start screens and/or choice screens
-- Implement optional upgrades to your tank (armor, visibility, turret speed, movement speed)
-- Implement choice of weapons (minigun, shotgun, ricochet, cannon, rockets, laser)
-- Basic movement, shooting, and level layouts
-- Spawn enemies periodically until the spawner is broken
-- Enemies track player (hard)
+- Level selection screen
+- Basic movement
+  - WASD (up, down, left, right)
+  - rotate character orientation based on mouse location
+- Shooting
+  - shooting in the direction of the cursor based on player location
+  - stationary enemy turrets that shoot at player upon contact
+  - bullets that disappear after a certain distance
+- Level layouts
+  - various "cell" types (indestructible wall, destructible wall, turrets)
 
 ## Nice to Have List
 - Achievements/stats
@@ -23,3 +27,8 @@ Awesome Tanks-esque game (inspiration: Cool Math Games)
 - Explosive canisters (AOE damage)
 - Healthbars for everything (blocks, enemies, player)
 - Freezing ability (freezes the enemy for a certain time after player has picked up the object)
+- Enemies track player (hard) - Pathfinding algorithm
+- Spawn enemies periodically until the spawner is broken, shoot when they see player - Line of sight algorithm
+- All start screens and/or choice screens - UI improvement
+- Implement optional upgrades to your tank (armor, visibility, turret speed, movement speed)
+- Implement choice of weapons (minigun, shotgun, ricochet, cannon, rockets, laser)
