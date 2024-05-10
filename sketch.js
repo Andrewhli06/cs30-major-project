@@ -23,17 +23,40 @@ class Bullet {
   }
 }
 
-// class Player {
-//   constructor() {
-
-//   }
-//   display() {
-
-//   }
-//   move() {
-
-//   }
-// }
+class Player {
+  constructor(x, y, dx, dy) {
+    this.x = 0;
+    this.y = 0;
+    this.transX = x;
+    this.transY = y;
+    this.dx = dx;
+    this.dy = dy;
+    this.size = 50;
+    this.angle = atan2(mouseY, mouseX);
+  }
+  display() {
+    fill("red");
+    push();
+    rotate(this.angle);
+    translate(this.transX, this.transY);
+    rect(this.x, this.y, this.size, this.size);
+    pop();
+  }
+  move() {
+    if (keyIsDown(87)) {
+      this.y -= this.dy;
+    }
+    else if (keyIsDown(83)) {
+      this.y += this.dy;
+    }
+    else if (keyIsDown(65)) {
+      this.x -= this.dx;
+    }
+    else if (keyIsDown(68)) {
+      this.x += this.dx;
+    }
+  }
+}
 
 // class EnemyTank {
 //   constructor() {
@@ -48,9 +71,11 @@ class Bullet {
 // }
 
 let bullets = [];
+let character;
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  
+  rectMode(CENTER);
+  character = new Player(width/2, height/2, 5, 5);
 }
 
 function draw() {
@@ -59,12 +84,13 @@ function draw() {
     bullet.move();
     bullet.display();
   } 
-  
+  character.display();
+  character.move();
 }
 
 function mousePressed() {
   bullets.push(new Bullet(mouseX, mouseY, random(-5,5), random(-5,5)));
-  console.log(bullets);
+  // console.log(bullets);
 }
 
 
