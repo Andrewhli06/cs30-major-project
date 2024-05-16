@@ -44,6 +44,7 @@ class Player {
   }
   display() {
     push();
+    fill("red");
     translate(this.transX, this.transY);
     rotate(this.rotateAngle);
     rect(this.position.x, this.position.y, this.size, this.size);
@@ -81,7 +82,15 @@ let bulletTravelDistance;
 let gridSize;
 let bullets = [];
 let character;
-const CELLSIZE = 50;
+let cellSize;
+let levelToLoad;
+let lines;
+
+function preload() {
+  levelToLoad = "level1.txt"
+  lines = loadStrings(levelToLoad);
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER)
@@ -92,12 +101,22 @@ function setup() {
   ty = height/2;
   bulletTravelDistance = 200;
   gridSize = 10;
+  cellSize = height/gridSize;
   character = new Player(0, 0, dx, dy, tx, ty, 50);
   level1 = grid(gridSize, gridSize);
+  
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
+      let cellType = lines[i][j];
+      level1[i][j] = cellType;
+    }
+  }
+
 }
 
 function draw() {
   background(200);
+  displayGrid(level1);
   character.update();
   movement();
   bulletDelete();
@@ -105,7 +124,6 @@ function draw() {
     bullet.move();
     bullet.display();
   } 
-  //displayGrid(level1);
 }
 
 function movement() {
@@ -150,9 +168,25 @@ function grid(cols, rows) {
 function displayGrid(grid) {
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
-      if (grid[i][j] === 0) {
-        rect(i * CELLSIZE, j * CELLSIZE, CELLSIZE, CELLSIZE);
-      }
+      showCell(level1[i][j], j, i);
     }
   }
+}
+
+function showCell(location, j, i) {
+  switch (location) {
+    case "S":
+      fill("grey");
+      rect(i * cellSize + cellSize/2, j * cellSize + cellSize/2, cellSize, cellSize);
+      break;
+    case "B":
+      fill("blue")
+      rect(i * cellSize + cellSize/2, j * cellSize + cellSize/2, cellSize, cellSize);
+      break;
+    case "W":
+      fill("green")
+      rect(i * cellSize + cellSize/2, j * cellSize + cellSize/2, cellSize, cellSize);
+      break;
+  }
+  
 }
