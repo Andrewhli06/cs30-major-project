@@ -168,7 +168,8 @@ function grid(cols, rows) {
 function displayGrid(grid) {
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
-      showCell(level1[i][j], j, i);
+      showCell(level1[j][i], j, i);
+      barrierDetection(level1[j][i], j, i);
     }
   }
 }
@@ -187,6 +188,17 @@ function showCell(location, j, i) {
       fill("green")
       rect(i * cellSize + cellSize/2, j * cellSize + cellSize/2, cellSize, cellSize);
       break;
+    case "E":
+      fill("white")
+      rect(i * cellSize + cellSize/2, j * cellSize + cellSize/2, cellSize, cellSize);
+      break;
   }
-  
+}
+
+function barrierDetection(location, j, i) {
+  switch (location) {
+    case "S":
+      if (collideRectRect(character.position.x, character.position.y, character.size, character.size, i * cellSize + cellSize/2, j * cellSize + cellSize/2, cellSize, cellSize)) {
+      }
+  }
 }
