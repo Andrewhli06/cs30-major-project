@@ -6,9 +6,8 @@
 // - describe what you did to take this project "above and beyond"
 
 class Bullet {
-  constructor(x, y, tx, ty, dx, dy) {
+  constructor(x, y, tx, ty, dy) {
     this.pos = createVector(x, y)
-    this.dx = dx;
     this.dy = dy;
     this.tx = tx;
     this.ty = ty;
@@ -44,7 +43,7 @@ class Player {
   }
   display() {
     push();
-    fill("red");
+    fill("orange");
     translate(this.transX, this.transY);
     rotate(this.rotateAngle);
     rect(this.position.x, this.position.y, this.size, this.size);
@@ -76,6 +75,60 @@ class Player {
   }
 }
 
+class EnemyTank {
+  constructor(x, y, px, py, tx, ty, dx, dy, size) {
+    this.pos = createVector(x, y);
+    this.size = size;
+    this.px = px;
+    this.py = py;
+    this.tx = tx;
+    this.ty = ty;
+    this.dx = dx;
+    this.dy = dy;
+    this.rotX = this.px - this.tx;
+    this.rotY = this.py - this.ty;
+    this.rotAngle = atan2(this.rotY, this.rotX);
+    this.enemyBullets = [];
+  }
+  display() {
+    push();
+    fill("red");
+    translate(this.tx, this.ty);
+    rotate(this.rotAngle);
+    rect(this.pos.x, this.pos.y, this.size, this.size);
+    pop();
+  }
+  shoot() {
+    while (dist(this.tx, this.ty, this.px, this.py) < bulletTravelDistance) {
+      this.enemyBullets.push(new Bullet(0, 0, this.pos.x, this.pos.y, 5));
+      this.enemyBullets.move();
+      this.enemyBullets.display();
+      console.log(this.enemyBullets);
+    }
+  }
+  rotate() {
+    this.rotX = this.px - this.tx;
+    this.rotY = this.py - this.ty;
+    this.rotAngle = atan2(this.rotY, this.rotX);
+  }
+  update() {
+    if (keyIsDown(87)) {
+      this.py -= this.dy;
+    }
+    else if (keyIsDown(83)) {
+      this.py += this.dy;
+    }
+    else if (keyIsDown(65)) {
+      this.px -= this.dx;
+    }
+    else if (keyIsDown(68)) {
+      this.px += this.dx;
+    }
+    enemy.rotate();
+    enemy.display();
+  }
+}
+
 let tx, ty;
 let dx, dy;
 let bulletTravelDistance;
@@ -85,6 +138,7 @@ let character;
 let cellSize;
 let levelToLoad;
 let lines;
+let enemy;
 
 function preload() {
   levelToLoad = "level1.txt"
@@ -104,6 +158,7 @@ function setup() {
   cellSize = height/gridSize;
   character = new Player(0, 0, dx, dy, tx, ty, 50);
   level1 = grid(gridSize, gridSize);
+  enemy = new EnemyTank(0, 0, tx, ty, width/4, height/4, dx, dy, 50);
   
   for (let i = 0; i < gridSize; i++) {
     for (let j = 0; j < gridSize; j++) {
@@ -116,7 +171,9 @@ function setup() {
 
 function draw() {
   background(200);
-  displayGrid(level1);
+  //displayGrid(level1);
+  enemy.update();
+  //console.log(enemy.px, enemy.py);
   character.update();
   movement();
   bulletDelete();
@@ -142,7 +199,7 @@ function movement() {
 }
 
 function mousePressed() {
-  bullets.push(new Bullet(0, 0, tx, ty, 5, 5));
+  bullets.push(new Bullet(0, 0, tx, ty, 5));
 }
 
 function bulletDelete() {
