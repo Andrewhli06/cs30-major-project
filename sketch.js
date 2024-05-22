@@ -5,6 +5,13 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
+//NTS:
+// rewrite code where tank is two squares on top of eachother to simplify collision detection
+// figure out breaking walls (change states for every bullet)
+// figure out how to set angle of bullet once
+// figure out stationary shooting for turrets
+// clean up classes
+
 class Bullet {
   constructor(x, y, tx, ty, dy) {
     this.pos = createVector(x, y)
