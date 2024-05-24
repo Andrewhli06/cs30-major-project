@@ -8,7 +8,7 @@
 //NTS:
 // rewrite code where tank is two squares on top of eachother to simplify collision detection
 // figure out breaking walls (change states for every bullet)
-// figure out how to set angle of bullet once
+// figure out how to set angle of bullet once (fix aimbot)
 // figure out stationary shooting for turrets
 // clean up classes
 
@@ -178,7 +178,7 @@ function setup() {
 
 function draw() {
   background(200);
-  //displayGrid(level1);
+  displayGrid(level1);
   enemy.update();
   //console.log(enemy.px, enemy.py);
   character.update();
