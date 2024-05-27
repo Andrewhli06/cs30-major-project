@@ -50,6 +50,11 @@ class Player {
   }
   display() {
     push();
+    fill("yellow");
+    translate(this.transX, this.transY);
+    rect(this.position.x, this.position.y, this.size*2, this.size*2);
+    pop();
+    push();
     fill("orange");
     translate(this.transX, this.transY);
     rotate(this.rotateAngle);
@@ -163,7 +168,7 @@ function setup() {
   bulletTravelDistance = 200;
   gridSize = 10;
   cellSize = height/gridSize;
-  character = new Player(0, 0, dx, dy, tx, ty, 50);
+  character = new Player(0, 0, dx, dy, tx, ty, 25);
   level1 = grid(gridSize, gridSize);
   enemy = new EnemyTank(0, 0, tx, ty, width/4, height/4, dx, dy, 50);
   
@@ -263,6 +268,7 @@ function barrierDetection(location, j, i) {
   switch (location) {
     case "S":
       if (collideRectRect(character.position.x, character.position.y, character.size, character.size, i * cellSize + cellSize/2, j * cellSize + cellSize/2, cellSize, cellSize)) {
+        character.dx = 0;
       }
   }
 }
