@@ -6,11 +6,15 @@
 // - describe what you did to take this project "above and beyond"
 
 //NTS:
-// rewrite code where tank is two squares on top of eachother to simplify collision detection
-// figure out breaking walls (change states for every bullet)
-// figure out how to set angle of bullet once (fix aimbot)
-// figure out stationary shooting for turrets
-// clean up classes
+// rewrite code where tank is two squares on top of eachother to simplify collision detection - done
+// figure out breaking walls (change states for every bullet) - collide2D? Best way to determine the location of each block? How to elegantly convert between levels
+// figure out how to set angle of bullet once (fix aimbot) - check p5js, fix current tx/ty issue in code
+// figure out stationary shooting for turrets - check p5js
+// clean up classes/variable names
+// figure out how to create perimeter barrier detection - check p5js
+// figure out perimeter bullet detection/deletion - check mptesting - vscode
+// figure out how to have a spotlight-like FOV for playerTank
+// apply all bullet and rotation features to turrets - how do you make sure that the turrets are not OP in the sense that they autolock onto player position? add random error of +- 5 degrees?
 
 class Bullet {
   constructor(x, y, tx, ty, dy) {
@@ -136,7 +140,9 @@ class EnemyTank {
     else if (keyIsDown(68)) {
       this.px += this.dx;
     }
-    enemy.rotate();
+    if (dist(enemy.pos.x, enemy.pos.y, enemy.px, enemy.py) < 500) {
+      enemy.rotate();
+    }
     enemy.display();
   }
 }
@@ -238,7 +244,7 @@ function displayGrid(grid) {
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
       showCell(level1[j][i], j, i);
-      barrierDetection(level1[j][i], j, i);
+      //barrierDetection(level1[j][i], j, i);
     }
   }
 }

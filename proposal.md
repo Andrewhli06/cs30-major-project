@@ -12,12 +12,12 @@ Awesome Tanks-esque game (inspiration: Cool Math Games)
 - Sound effects/background music
 - Level selection screen
 - Basic movement
-  - WASD (up, down, left, right)
-  - rotate character orientation based on mouse location
+  - WASD (up, down, left, right) ✓
+  - rotate character orientation based on mouse location ✓
 - Shooting
-  - shooting in the direction of the cursor based on player location
-  - stationary enemy turrets that shoot at player upon contact
-  - bullets that disappear after a certain distance
+  - shooting in the direction of the cursor based on player location ✓
+  - stationary enemy turrets that shoot at player upon contact ✓
+  - bullets that disappear after a certain distance ✓
 - Level layouts
   - various "cell" types (indestructible wall, destructible wall, turrets)
 
