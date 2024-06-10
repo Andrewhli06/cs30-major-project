@@ -1,6 +1,6 @@
 // Awesome Tanks Game
 // Andrew Li
-// June 15th 2024
+// June 14th 2024
 //
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
@@ -17,26 +17,46 @@
 // apply all bullet and rotation features to turrets - how do you make sure that the turrets are not OP in the sense that they autolock onto player position? add random error of +- 5 degrees?
 
 class Bullet {
-  constructor(x, y, tx, ty, dy) {
-    this.pos = createVector(x, y)
+  constructor(x, y, transX, transY, dy, size) {
+    this.position = createVector(x, y);
     this.dy = dy;
-    this.tx = tx;
-    this.ty = ty;
-    this.radius = 5;
-    this.rotX = mouseX - this.tx;
-    this.rotY = mouseY - this.ty;
-    this.rotateAngle = atan2(this.rotY , this.rotX) - 90;
+    this.transX = transX;
+    this.transY = transY;
+    this.size = size;
+    this.rotateX = mouseX - this.transX;
+    this.rotateY = mouseY - this.transY;
+    this.rotateAngle = atan2(this.rotateY, this.rotateX) - 90;
+    this.locationX, this.locationY;
   }
   display() {
     push();
-    translate(this.tx, this.ty);
-    rotate(this.rotateAngle);
     fill("black");
-    circle(this.pos.x, this.pos.y, this.radius);
+    translate(this.transX, this.transY);
+    rotate(this.rotateAngle);
+    //console.log(this.rotateAngle);
+    circle(this.position.x, this.position.y, this.size);
     pop();
   }
   move() {
-    this.pos.y += this.dy;
+    this.position.y += this.dy;
+  }
+  locationConversion() {
+    if (this.rotateAngle > -180 && this.rotateAngle < -90) { //Quadrant 1
+      this.locationX = this.transX + Math.abs(this.position.y*sin(this.rotateAngle)); 
+      this.locationY = this.transY - Math.abs(this.position.y*cos(this.rotateAngle));
+    }
+    else if (this.rotateAngle > -90 && this.rotateAngle < 0) { //Quadrant 2
+      this.locationX = this.transX + Math.abs(this.position.y*sin(this.rotateAngle));
+      this.locationY = this.transY + Math.abs(this.position.y*cos(this.rotateAngle));
+    }
+    else if (this.rotateAngle > 0 && this.rotateAngle < 90) { //Quadrant 3
+      this.locationX = this.transX - Math.abs(this.position.y*sin(this.rotateAngle));
+      this.locationY = this.transY + Math.abs(this.position.y*cos(this.rotateAngle));
+    }
+    else if (this.rotateAngle > -270 && this.rotateAngle < -180) { //Quadrant 4
+      this.locationX = this.transX - Math.abs(this.position.y*sin(this.rotateAngle));
+      this.locationY = this.transY - Math.abs(this.position.y*cos(this.rotateAngle));
+    }
   }
 }
 
@@ -45,9 +65,9 @@ class Player {
     this.position = createVector(x, y);
     this.dx = dx;
     this.dy = dy;
-    this.transX = transX;
-    this.transY = transY;
     this.size = size;
+    this.transX = transX + this.size;
+    this.transY = transY + this.size; 
     this.rotateX = mouseX - this.transX;
     this.rotateY = mouseY - this.transY;
     this.rotateAngle = atan2(this.rotateY, this.rotateX)
@@ -92,71 +112,48 @@ class Player {
 }
 
 class EnemyTank {
-  constructor(x, y, px, py, tx, ty, dx, dy, size) {
-    this.pos = createVector(x, y);
+  constructor(x, y, transX, transY, size) {
+    this.position = createVector(x, y);
+    this.transX = transX;
+    this.transY = transY;
     this.size = size;
-    this.px = px;
-    this.py = py;
-    this.tx = tx;
-    this.ty = ty;
-    this.dx = dx;
-    this.dy = dy;
-    this.rotX = this.px - this.tx;
-    this.rotY = this.py - this.ty;
-    this.rotAngle = atan2(this.rotY, this.rotX);
-    this.enemyBullets = [];
+    this.rotateX = mouseX - this.transX;
+    this.rotateY = mouseY - this.transY;
+    this.rotateAngle = atan2(this.rotateY, this.rotateX) - 90;
   }
   display() {
     push();
     fill("red");
-    translate(this.tx, this.ty);
-    rotate(this.rotAngle);
-    rect(this.pos.x, this.pos.y, this.size, this.size);
+    translate(this.transX, this.transY);
+    rotate(this.rotateAngle);
+    rect(this.position.x, this.position.y, this.size, this.size);
     pop();
   }
   shoot() {
-    while (dist(this.tx, this.ty, this.px, this.py) < bulletTravelDistance) {
-      this.enemyBullets.push(new Bullet(0, 0, this.pos.x, this.pos.y, 5));
-      this.enemyBullets.move();
-      this.enemyBullets.display();
-      console.log(this.enemyBullets);
+    if (millis() > lastShot + waitTime && dist(mouseX, mouseY, this.transX, this.transY) < 200) {
+      enemyBullets.push(new Bullet(0, 0, this.transX, this.transY, 5, 5, 25));
+      //console.log(enemyBullets);
+      lastShot = millis();
     }
   }
   rotate() {
-    this.rotX = this.px - this.tx;
-    this.rotY = this.py - this.ty;
-    this.rotAngle = atan2(this.rotY, this.rotX);
-  }
-  update() {
-    if (keyIsDown(87)) {
-      this.py -= this.dy;
-    }
-    else if (keyIsDown(83)) {
-      this.py += this.dy;
-    }
-    else if (keyIsDown(65)) {
-      this.px -= this.dx;
-    }
-    else if (keyIsDown(68)) {
-      this.px += this.dx;
-    }
-    if (dist(enemy.pos.x, enemy.pos.y, enemy.px, enemy.py) < 500) {
-      enemy.rotate();
-    }
-    enemy.display();
+    this.rotateX = mouseX - this.transX;
+    this.rotateY = mouseY - this.transY;
+    this.rotateAngle = atan2(this.rotateY, this.rotateX) - 90;
   }
 }
 
-let tx, ty;
+let transX, transY;
 let dx, dy;
-let bulletTravelDistance;
+let bulletTravelDistance, enemyBulletTravelDistance;
 let gridSize;
 let bullets = [];
-let character;
+let enemyBullets = [];
+let character, enemy;
 let cellSize;
-let levelToLoad;
-let lines;
-let enemy;
+let levelToLoad, lines;
+let lastShot = 0;
+let waitTime = 300;
 
 function preload() {
   levelToLoad = "level1.txt"
@@ -169,14 +166,15 @@ function setup() {
   angleMode(DEGREES);
   dx = 5;
   dy = 5;
-  tx = width/2;
-  ty = height/2;
   bulletTravelDistance = 200;
-  gridSize = 10;
+  enemyBulletTravelDistance = 300;
+  gridSize = 10; //consider changing to a const
   cellSize = height/gridSize;
-  character = new Player(0, 0, dx, dy, tx, ty, 25);
+  transX = cellSize;
+  transY = cellSize;
+  character = new Player(0, 0, dx, dy, transX, transY, 25);
+  enemy = new EnemyTank(0, 0, (gridSize - 2)*cellSize, cellSize, 50)
   level1 = grid(gridSize, gridSize);
-  enemy = new EnemyTank(0, 0, tx, ty, width/4, height/4, dx, dy, 50);
   
   for (let i = 0; i < gridSize; i++) {
     for (let j = 0; j < gridSize; j++) {
@@ -190,42 +188,46 @@ function setup() {
 function draw() {
   background(200);
   displayGrid(level1);
-  enemy.update();
-  //console.log(enemy.px, enemy.py);
   character.update();
-  movement();
   bulletDelete();
-  for (let bullet of bullets) {
-    bullet.move();
-    bullet.display();
-  } 
-}
+  perimeterBarrierDetection();
+  perimeterBulletDetection();
+  characterLocation();
 
-function movement() {
-  if (keyIsDown(87)) {
-    ty -= dy;
+  enemy.display();
+  enemy.shoot();
+  enemy.rotate();
+
+  for (let someBullet of bullets) {
+    someBullet.move();
+    someBullet.display();
+    someBullet.locationConversion();
+    //console.log(someBullet.locationX, someBullet.locationY)
+    //console.log(bullet.position.y);
   }
-  else if (keyIsDown(83)) {
-    ty += dy;
+  for (let someBullet of enemyBullets) {
+    someBullet.move();
+    someBullet.display();
   }
-  else if (keyIsDown(65)) {
-    tx -= dx;
-  }
-  else if (keyIsDown(68)) {
-    tx += dx;
-  }
+  //console.log(mouseX, mouseY); 
 }
 
 function mousePressed() {
-  bullets.push(new Bullet(0, 0, tx, ty, 5));
+  bullets.push(new Bullet(0, 0, character.transX, character.transY, 1, 5));
 }
 
 function bulletDelete() {
   for (let someBullet of bullets) {
-    if (dist(someBullet.pos.x, someBullet.pos.y, character.position.x, character.position.y) > bulletTravelDistance) {
+    if (dist(someBullet.position.x, someBullet.position.y, character.position.x, character.position.y) > bulletTravelDistance) {
       let theIndex = bullets.indexOf(someBullet);
       bullets.splice(theIndex, 1);
     } 
+  }
+  for (let someBullet of enemyBullets) {
+    if (dist(enemy.position.x, enemy.position.y, someBullet.position.x, someBullet.position.y) > enemyBulletTravelDistance) {
+      let theIndex = enemyBullets.indexOf(someBullet);
+      enemyBullets.splice(theIndex, 1);
+    }
   }
 }
 
@@ -244,12 +246,13 @@ function displayGrid(grid) {
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
       showCell(level1[j][i], j, i);
-      //barrierDetection(level1[j][i], j, i);
     }
   }
 }
 
 function showCell(location, j, i) {
+  // push();
+  // noStroke();
   switch (location) {
     case "S":
       fill("grey");
@@ -268,13 +271,36 @@ function showCell(location, j, i) {
       rect(i * cellSize + cellSize/2, j * cellSize + cellSize/2, cellSize, cellSize);
       break;
   }
+  //pop();
 }
 
-function barrierDetection(location, j, i) {
-  switch (location) {
-    case "S":
-      if (collideRectRect(character.position.x, character.position.y, character.size, character.size, i * cellSize + cellSize/2, j * cellSize + cellSize/2, cellSize, cellSize)) {
-        character.dx = 0;
-      }
+function perimeterBarrierDetection() {
+  if (character.transX - character.size < cellSize) {
+    character.transX = cellSize + character.size;
+  } 
+  else if (character.transY - character.size < cellSize) {
+    character.transY = cellSize + character.size;
+  } 
+  else if (character.transX + character.size > (gridSize - 1)*cellSize) {
+    character.transX = (gridSize - 1)*cellSize - character.size;
+  } 
+  else if (character.transY + character.size > height - cellSize) {
+    character.transY = height - cellSize - character.size;
   }
+}
+
+function perimeterBulletDetection() {
+  for (let someBullet of bullets) {
+    let theIndex = bullets.indexOf(someBullet);
+    if (someBullet.locationX - someBullet.size < cellSize || 
+      someBullet.locationY - someBullet.size < cellSize ||
+      someBullet.locationX + someBullet.size > (gridSize - 1)*cellSize ||
+      someBullet.locationY + someBullet.size > height - cellSize) {
+      bullets.splice(theIndex, 1);
+    }
+  }
+}
+
+function characterLocation() {
+  console.log(Math.floor(character.transX/cellSize), Math.floor(character.transY/cellSize));
 }
