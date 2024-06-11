@@ -11,6 +11,7 @@
 // apply all bullet and rotation features to turrets - how do you make sure that the turrets are not OP in the sense that they autolock onto player position? add random error of +- 5 degrees?
 // apply object detection to bullets
 // implement a camera?
+// use p5 clickable for level selection
 // pictures, sound, loading screens
 // create more levels
 // A* and/or line of sight algorithms
@@ -227,7 +228,7 @@ function draw() {
   bulletDelete();
   perimeterBarrierDetection();
   perimeterBulletDetection();
-  //characterLocation();
+  bulletLocation();
 
   enemy.display();
   //enemy.shoot();
@@ -336,9 +337,10 @@ function perimeterBulletDetection() {
   }
 }
 
-function characterLocation() {
-  let playerLocationX = Math.floor(character.transX/cellSize)
-  let playerLocationY = Math.floor((character.transY - character.size)/cellSize)
-  console.log(level[playerLocationY][playerLocationX]);
-
+function bulletLocation() {
+  for (let someBullet of bullets) {
+    let bulletGridX = Math.floor(someBullet.locationX/cellSize);
+    let bulletGridY = Math.floor(someBullet.locationY/cellSize);
+    console.log(bulletGridY, bulletGridX);
+  }
 }
