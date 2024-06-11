@@ -5,16 +5,21 @@
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
 
-//NTS:
-// rewrite code where tank is two squares on top of eachother to simplify collision detection - done
+//NTS/TDL:
 // figure out breaking walls (change states for every bullet) - collide2D? Best way to determine the location of each block? How to elegantly convert between levels
-// figure out how to set angle of bullet once (fix aimbot) - check p5js, fix current tx/ty issue in code
-// figure out stationary shooting for turrets - check p5js
-// clean up classes/variable names
-// figure out how to create perimeter barrier detection - check p5js
-// figure out perimeter bullet detection/deletion - check mptesting - vscode
 // figure out how to have a spotlight-like FOV for playerTank
 // apply all bullet and rotation features to turrets - how do you make sure that the turrets are not OP in the sense that they autolock onto player position? add random error of +- 5 degrees?
+// apply object detection to bullets
+// implement a camera?
+// pictures, sound, loading screens
+// create more levels
+// A* and/or line of sight algorithms
+
+
+//known bugs:
+// objects placed within the grid have a "deadzone" where player can ever so slightly pass through - potential solution: 3 point check?
+// objects placed within grid are quite buggy, the mathematical deduction of player location has a bit of error
+// player will slightly sink into corners of grid due to same "deadzone" type issue
 
 class Bullet {
   constructor(x, y, transX, transY, dy, size) {
@@ -86,17 +91,47 @@ class Player {
     pop();
   }
   move() {
-    if (keyIsDown(87)) {
-      this.transY -= this.dy;
+    let playerLocationX, playerLocationY;
+    if (keyIsDown(87)) { // w
+      playerLocationX = Math.floor(this.transX/cellSize);
+      playerLocationY = Math.floor((this.transY - this.size - this.dy)/cellSize);
+      if (level[playerLocationY][playerLocationX] !== "E") {
+        playerLocationY += this.dy; 
+      }
+      else {
+        this.transY -= this.dy
+      }
     }
-    else if (keyIsDown(83)) {
-      this.transY += this.dy;
+    else if (keyIsDown(83)) { //s //why does this one not require a dy consideration
+      playerLocationX = Math.floor(this.transX/cellSize);
+      playerLocationY = Math.floor((this.transY + this.size)/cellSize);
+      if (level[playerLocationY][playerLocationX] !== "E") {
+        playerLocationY -= this.dy; 
+      }
+      else {
+        this.transY += this.dy;
+      }
     }
-    else if (keyIsDown(65)) {
-      this.transX -= this.dx;
+    else if (keyIsDown(65)) { //a
+      playerLocationX = Math.floor((this.transX - this.size - this.dx)/cellSize);
+      playerLocationY = Math.floor(this.transY/cellSize);
+      if (level[playerLocationY][playerLocationX] !== "E") {
+        playerLocationX += this.dx;
+      }
+      else {
+        this.transX -= this.dx;
+      }
     }
-    else if (keyIsDown(68)) {
-      this.transX += this.dx;
+    else if (keyIsDown(68)) { //d // why does this one not require a dx consideration
+      playerLocationX = Math.floor((this.transX + this.size)/cellSize);
+      playerLocationY = Math.floor(this.transY/cellSize);
+      if (level[playerLocationY][playerLocationX] !== "E") {
+        playerLocationX -= this.dx;
+      }
+      else {
+        this.transX += this.dx;
+      }
+      
     }
   }
   rotate() {
@@ -151,7 +186,7 @@ let bullets = [];
 let enemyBullets = [];
 let character, enemy;
 let cellSize;
-let levelToLoad, lines;
+let levelToLoad, lines, level;
 let lastShot = 0;
 let waitTime = 300;
 
@@ -174,12 +209,12 @@ function setup() {
   transY = cellSize;
   character = new Player(0, 0, dx, dy, transX, transY, 25);
   enemy = new EnemyTank(0, 0, (gridSize - 2)*cellSize, cellSize, 50)
-  level1 = grid(gridSize, gridSize);
+  level = grid(gridSize, gridSize);
   
   for (let i = 0; i < gridSize; i++) {
     for (let j = 0; j < gridSize; j++) {
       let cellType = lines[i][j];
-      level1[i][j] = cellType;
+      level[i][j] = cellType;
     }
   }
 
@@ -187,15 +222,15 @@ function setup() {
 
 function draw() {
   background(200);
-  displayGrid(level1);
+  displayGrid(level);
   character.update();
   bulletDelete();
   perimeterBarrierDetection();
   perimeterBulletDetection();
-  characterLocation();
+  //characterLocation();
 
   enemy.display();
-  enemy.shoot();
+  //enemy.shoot();
   enemy.rotate();
 
   for (let someBullet of bullets) {
@@ -213,7 +248,7 @@ function draw() {
 }
 
 function mousePressed() {
-  bullets.push(new Bullet(0, 0, character.transX, character.transY, 1, 5));
+  bullets.push(new Bullet(0, 0, character.transX, character.transY, 5, 5));
 }
 
 function bulletDelete() {
@@ -245,7 +280,7 @@ function grid(cols, rows) {
 function displayGrid(grid) {
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[i].length; j++) {
-      showCell(level1[j][i], j, i);
+      showCell(level[j][i], j, i);
     }
   }
 }
@@ -275,16 +310,16 @@ function showCell(location, j, i) {
 }
 
 function perimeterBarrierDetection() {
-  if (character.transX - character.size < cellSize) {
+  if (character.transX - character.size - character.dx < cellSize) {
     character.transX = cellSize + character.size;
   } 
-  else if (character.transY - character.size < cellSize) {
+  else if (character.transY - character.size - character.dy < cellSize) {
     character.transY = cellSize + character.size;
   } 
-  else if (character.transX + character.size > (gridSize - 1)*cellSize) {
+  else if (character.transX + character.size + character.dx > (gridSize - 1)*cellSize) {
     character.transX = (gridSize - 1)*cellSize - character.size;
   } 
-  else if (character.transY + character.size > height - cellSize) {
+  else if (character.transY + character.size + character.dy > height - cellSize) {
     character.transY = height - cellSize - character.size;
   }
 }
@@ -302,5 +337,8 @@ function perimeterBulletDetection() {
 }
 
 function characterLocation() {
-  console.log(Math.floor(character.transX/cellSize), Math.floor(character.transY/cellSize));
+  let playerLocationX = Math.floor(character.transX/cellSize)
+  let playerLocationY = Math.floor((character.transY - character.size)/cellSize)
+  console.log(level[playerLocationY][playerLocationX]);
+
 }
