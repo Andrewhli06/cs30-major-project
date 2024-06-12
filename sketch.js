@@ -9,7 +9,6 @@
 // figure out breaking walls (change states for every bullet) - collide2D? Best way to determine the location of each block? How to elegantly convert between levels
 // figure out how to have a spotlight-like FOV for playerTank
 // apply all bullet and rotation features to turrets - how do you make sure that the turrets are not OP in the sense that they autolock onto player position? add random error of +- 5 degrees?
-// apply object detection to bullets
 // implement a camera?
 // use p5 clickable for level selection
 // pictures, sound, loading screens
@@ -21,6 +20,7 @@
 // objects placed within the grid have a "deadzone" where player can ever so slightly pass through - potential solution: 3 point check?
 // objects placed within grid are quite buggy, the mathematical deduction of player location has a bit of error
 // player will slightly sink into corners of grid due to same "deadzone" type issue
+// bullet phases slightly in objects
 
 class Bullet {
   constructor(x, y, transX, transY, dy, size) {
@@ -33,6 +33,7 @@ class Bullet {
     this.rotateY = mouseY - this.transY;
     this.rotateAngle = atan2(this.rotateY, this.rotateX) - 90;
     this.locationX, this.locationY;
+    this.gridX, this.gridY;
   }
   display() {
     push();
@@ -44,24 +45,40 @@ class Bullet {
     pop();
   }
   move() {
-    this.position.y += this.dy;
+    for (let someBullet of bullets) {
+      let theIndex = bullets.indexOf(someBullet);
+      if (someBullet.gridX > 0 && someBullet.gridY > 0) {
+        if (level[someBullet.gridY][someBullet.gridX] !== "E") {
+          bullets.splice(theIndex, 1);
+        }
+      }
+    }
+     this.position.y += this.dy;
   }
   locationConversion() {
     if (this.rotateAngle > -180 && this.rotateAngle < -90) { //Quadrant 1
       this.locationX = this.transX + Math.abs(this.position.y*sin(this.rotateAngle)); 
       this.locationY = this.transY - Math.abs(this.position.y*cos(this.rotateAngle));
+      this.gridX = Math.floor((this.locationX + (this.size/2 + this.dy)*cos(this.rotateAngle))/cellSize);
+      this.gridY = Math.floor((this.locationY - (this.size/2 + this.dy)*sin(this.rotateAngle))/cellSize);
     }
     else if (this.rotateAngle > -90 && this.rotateAngle < 0) { //Quadrant 2
       this.locationX = this.transX + Math.abs(this.position.y*sin(this.rotateAngle));
       this.locationY = this.transY + Math.abs(this.position.y*cos(this.rotateAngle));
+      this.gridX = Math.floor((this.locationX - (this.size/2 + this.dy)*cos(this.rotateAngle))/cellSize);
+      this.gridY = Math.floor((this.locationY - (this.size/2 + this.dy)*sin(this.rotateAngle))/cellSize);
     }
     else if (this.rotateAngle > 0 && this.rotateAngle < 90) { //Quadrant 3
       this.locationX = this.transX - Math.abs(this.position.y*sin(this.rotateAngle));
       this.locationY = this.transY + Math.abs(this.position.y*cos(this.rotateAngle));
+      this.gridX = Math.floor((this.locationX - (this.size/2 + this.dy)*cos(this.rotateAngle))/cellSize);
+      this.gridY = Math.floor((this.locationY + (this.size/2 + this.dy)*sin(this.rotateAngle))/cellSize);
     }
     else if (this.rotateAngle > -270 && this.rotateAngle < -180) { //Quadrant 4
       this.locationX = this.transX - Math.abs(this.position.y*sin(this.rotateAngle));
       this.locationY = this.transY - Math.abs(this.position.y*cos(this.rotateAngle));
+      this.gridX = Math.floor((this.locationX + (this.size/2 + this.dy)*cos(this.rotateAngle))/cellSize);
+      this.gridY = Math.floor((this.locationY + (this.size/2 + this.dy)*sin(this.rotateAngle))/cellSize);
     }
   }
 }
@@ -228,7 +245,7 @@ function draw() {
   bulletDelete();
   perimeterBarrierDetection();
   perimeterBulletDetection();
-  bulletLocation();
+  //bulletLocation();
 
   enemy.display();
   //enemy.shoot();
@@ -238,8 +255,7 @@ function draw() {
     someBullet.move();
     someBullet.display();
     someBullet.locationConversion();
-    //console.log(someBullet.locationX, someBullet.locationY)
-    //console.log(bullet.position.y);
+
   }
   for (let someBullet of enemyBullets) {
     someBullet.move();
@@ -249,7 +265,7 @@ function draw() {
 }
 
 function mousePressed() {
-  bullets.push(new Bullet(0, 0, character.transX, character.transY, 5, 5));
+  bullets.push(new Bullet(0, 0, character.transX, character.transY, 1, 5));
 }
 
 function bulletDelete() {
@@ -341,6 +357,9 @@ function bulletLocation() {
   for (let someBullet of bullets) {
     let bulletGridX = Math.floor(someBullet.locationX/cellSize);
     let bulletGridY = Math.floor(someBullet.locationY/cellSize);
-    console.log(bulletGridY, bulletGridX);
+    if (bulletGridX > 0 && bulletGridY > 0) {
+      console.log(level[bulletGridY][bulletGridX]); 
+    }
+    
   }
 }
