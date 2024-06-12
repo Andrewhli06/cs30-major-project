@@ -12,7 +12,7 @@
 // implement a camera?
 // use p5 clickable for level selection
 // pictures, sound, loading screens
-// create more levels
+// create more levels/level selection in general
 // A* and/or line of sight algorithms
 
 
@@ -21,6 +21,7 @@
 // objects placed within grid are quite buggy, the mathematical deduction of player location has a bit of error
 // player will slightly sink into corners of grid due to same "deadzone" type issue
 // bullet phases slightly in objects
+// all destructible objects of the same species have influence eachother's health values
 
 class Bullet {
   constructor(x, y, transX, transY, dy, size) {
@@ -48,12 +49,42 @@ class Bullet {
     for (let someBullet of bullets) {
       let theIndex = bullets.indexOf(someBullet);
       if (someBullet.gridX > 0 && someBullet.gridY > 0) {
-        if (level[someBullet.gridY][someBullet.gridX] !== "E") {
-          bullets.splice(theIndex, 1);
+        switch (level[someBullet.gridY][someBullet.gridX]) {
+          case "S":
+            bullets.splice(theIndex, 1);
+            break;
+          case "B":
+            if (brickHealth > 0) {
+              brickHealth--; 
+              bullets.splice(theIndex, 1); 
+            }
+            else {
+              level[someBullet.gridY][someBullet.gridX] = "E";
+              brickHealth = 8;
+            }
+            break;
+          case "W":
+            if (wallHealth > 0) {
+              wallHealth--
+              bullets.splice(theIndex, 1);
+            }
+            else {
+              level[someBullet.gridY][someBullet.gridX] = "E";
+              wallHealth = 5;
+            }
+            break;
         }
       }
     }
-     this.position.y += this.dy;
+    for (let someEnemyBullet of enemyBullets) {
+      let theIndex = enemyBullets.indexOf(someEnemyBullet);
+      if (someEnemyBullet.gridY > 0 && someEnemyBullet.gridX > 0) {
+        if (level[someEnemyBullet.gridY][someEnemyBullet.gridX] !== "E") {
+          enemyBullets.splice(theIndex, 1);
+        }
+      }
+    }
+    this.position.y += this.dy;
   }
   locationConversion() {
     if (this.rotateAngle > -180 && this.rotateAngle < -90) { //Quadrant 1
@@ -176,6 +207,11 @@ class EnemyTank {
   }
   display() {
     push();
+    fill("yellow");
+    translate(this.transX, this.transY);
+    rect(this.position.x, this.position.y, this.size*2, this.size*2);
+    pop();
+    push();
     fill("red");
     translate(this.transX, this.transY);
     rotate(this.rotateAngle);
@@ -184,7 +220,7 @@ class EnemyTank {
   }
   shoot() {
     if (millis() > lastShot + waitTime && dist(mouseX, mouseY, this.transX, this.transY) < 200) {
-      enemyBullets.push(new Bullet(0, 0, this.transX, this.transY, 5, 5, 25));
+      enemyBullets.push(new Bullet(0, 0, this.transX, this.transY, 1, 5));
       //console.log(enemyBullets);
       lastShot = millis();
     }
@@ -200,6 +236,7 @@ let transX, transY;
 let dx, dy;
 let bulletTravelDistance, enemyBulletTravelDistance;
 let gridSize;
+let enemyTanks = [];
 let bullets = [];
 let enemyBullets = [];
 let character, enemy;
@@ -207,9 +244,11 @@ let cellSize;
 let levelToLoad, lines, level;
 let lastShot = 0;
 let waitTime = 300;
+let wallHealth = 5;
+let brickHealth = 8
 
-function preload() {
-  levelToLoad = "level1.txt"
+function preload() { // either load all levels or search up "callback"
+  levelToLoad = "level1.txt";
   lines = loadStrings(levelToLoad);
 }
 
@@ -226,7 +265,7 @@ function setup() {
   transX = cellSize;
   transY = cellSize;
   character = new Player(0, 0, dx, dy, transX, transY, 25);
-  enemy = new EnemyTank(0, 0, (gridSize - 2)*cellSize, cellSize, 50)
+  enemy = new EnemyTank(0, 0, (gridSize - 4)*cellSize, cellSize*2, 25)
   level = grid(gridSize, gridSize);
   
   for (let i = 0; i < gridSize; i++) {
@@ -245,7 +284,6 @@ function draw() {
   bulletDelete();
   perimeterBarrierDetection();
   perimeterBulletDetection();
-  //bulletLocation();
 
   enemy.display();
   //enemy.shoot();
@@ -260,6 +298,7 @@ function draw() {
   for (let someBullet of enemyBullets) {
     someBullet.move();
     someBullet.display();
+    someBullet.locationConversion();
   }
   //console.log(mouseX, mouseY); 
 }
@@ -351,15 +390,15 @@ function perimeterBulletDetection() {
       bullets.splice(theIndex, 1);
     }
   }
-}
-
-function bulletLocation() {
-  for (let someBullet of bullets) {
-    let bulletGridX = Math.floor(someBullet.locationX/cellSize);
-    let bulletGridY = Math.floor(someBullet.locationY/cellSize);
-    if (bulletGridX > 0 && bulletGridY > 0) {
-      console.log(level[bulletGridY][bulletGridX]); 
+  for (let someBullet of enemyBullets) {
+    let theIndex = enemyBullets.indexOf(someBullet);
+    if (someBullet.locationX - someBullet.size < cellSize || 
+      someBullet.locationY - someBullet.size < cellSize ||
+      someBullet.locationX + someBullet.size > (gridSize - 1)*cellSize ||
+      someBullet.locationY + someBullet.size > height - cellSize) {
+      enemyBullets.splice(theIndex, 1);
     }
-    
   }
 }
+
+
