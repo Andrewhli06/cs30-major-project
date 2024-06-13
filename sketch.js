@@ -13,15 +13,18 @@
 // use p5 clickable for level selection
 // pictures, sound, loading screens
 // create more levels/level selection in general
+// work on start screen and play states/states in general
 // A* and/or line of sight algorithms
 
 
 //known bugs:
-// objects placed within the grid have a "deadzone" where player can ever so slightly pass through - potential solution: 3 point check?
+// down and right movements leave the character roughly dx/dy distance away from object
 // objects placed within grid are quite buggy, the mathematical deduction of player location has a bit of error
 // player will slightly sink into corners of grid due to same "deadzone" type issue
 // bullet phases slightly in objects
-// all destructible objects of the same species have influence eachother's health values
+// all destructible objects of the same species have influence on eachother's health values
+
+// potential suggestions (if you have time):
 
 class Bullet {
   constructor(x, y, transX, transY, dy, size) {
@@ -140,47 +143,60 @@ class Player {
     pop();
   }
   move() {
-    let playerLocationX, playerLocationY;
+    let playerLeftLocationX, playerLeftLocationY;
+    let playerCenterLocationX, playerCenterLocationY;
+    let playerRightLocationX, playerRightLocationY;
     if (keyIsDown(87)) { // w
-      playerLocationX = Math.floor(this.transX/cellSize);
-      playerLocationY = Math.floor((this.transY - this.size - this.dy)/cellSize);
-      if (level[playerLocationY][playerLocationX] !== "E") {
-        playerLocationY += this.dy; 
-      }
-      else {
-        this.transY -= this.dy
+      playerLeftLocationX = Math.floor((this.transX - this.size)/cellSize);
+      playerLeftLocationY = Math.floor((this.transY - this.size - this.dy)/cellSize);
+      playerCenterLocationX = Math.floor(this.transX/cellSize);
+      playerCenterLocationY = Math.floor((this.transY - this.size - this.dy)/cellSize);
+      playerRightLocationX = Math.floor((this.transX + this.size)/cellSize);
+      playerRightLocationY = Math.floor((this.transY - this.size - this.dy)/cellSize);
+      if (level[playerLeftLocationY][playerLeftLocationX] === "E" &&
+          level[playerCenterLocationY][playerCenterLocationX] === "E" &&
+          level[playerRightLocationY][playerRightLocationX] === "E") {
+          this.transY -= this.dy
       }
     }
     else if (keyIsDown(83)) { //s //why does this one not require a dy consideration
-      playerLocationX = Math.floor(this.transX/cellSize);
-      playerLocationY = Math.floor((this.transY + this.size)/cellSize);
-      if (level[playerLocationY][playerLocationX] !== "E") {
-        playerLocationY -= this.dy; 
-      }
-      else {
-        this.transY += this.dy;
+      playerLeftLocationX = Math.floor((this.transX - this.size)/cellSize);
+      playerLeftLocationY = Math.floor((this.transY + this.size + this.dy)/cellSize);
+      playerCenterLocationX = Math.floor(this.transX/cellSize);
+      playerCenterLocationY = Math.floor((this.transY + this.size + this.dy)/cellSize);
+      playerRightLocationX = Math.floor((this.transX + this.size)/cellSize);
+      playerRightLocationY = Math.floor((this.transY + this.size + this.dy)/cellSize);
+      if (level[playerLeftLocationY][playerLeftLocationX] === "E" &&
+          level[playerCenterLocationY][playerCenterLocationX] === "E" &&
+          level[playerRightLocationY][playerRightLocationX] === "E") {
+          this.transY += this.dy;
       }
     }
     else if (keyIsDown(65)) { //a
-      playerLocationX = Math.floor((this.transX - this.size - this.dx)/cellSize);
-      playerLocationY = Math.floor(this.transY/cellSize);
-      if (level[playerLocationY][playerLocationX] !== "E") {
-        playerLocationX += this.dx;
-      }
-      else {
-        this.transX -= this.dx;
+      playerLeftLocationX = Math.floor((this.transX - this.size - this.dx)/cellSize);
+      playerLeftLocationY = Math.floor((this.transY + this.size)/cellSize);
+      playerCenterLocationX = Math.floor((this.transX - this.size - this.dx)/cellSize);
+      playerCenterLocationY = Math.floor(this.transY/cellSize);
+      playerRightLocationX = Math.floor((this.transX - this.size - this.dx)/cellSize);
+      playerRightLocationY = Math.floor((this.transY - this.size)/cellSize);
+      if (level[playerLeftLocationY][playerLeftLocationX] === "E" &&
+          level[playerCenterLocationY][playerCenterLocationX] === "E" &&
+          level[playerRightLocationY][playerRightLocationX] === "E") {
+          this.transX -= this.dx;
       }
     }
     else if (keyIsDown(68)) { //d // why does this one not require a dx consideration
-      playerLocationX = Math.floor((this.transX + this.size)/cellSize);
-      playerLocationY = Math.floor(this.transY/cellSize);
-      if (level[playerLocationY][playerLocationX] !== "E") {
-        playerLocationX -= this.dx;
+      playerLeftLocationX = Math.floor((this.transX + this.size + this.dx)/cellSize);
+      playerLeftLocationY = Math.floor((this.transY + this.size)/cellSize);
+      playerCenterLocationX = Math.floor((this.transX + this.size + this.dx)/cellSize);
+      playerCenterLocationY = Math.floor(this.transY/cellSize);
+      playerRightLocationX = Math.floor((this.transX + this.size + this.dx)/cellSize);
+      playerRightLocationY = Math.floor((this.transY - this.size)/cellSize);
+      if (level[playerLeftLocationY][playerLeftLocationX] === "E" &&
+          level[playerCenterLocationY][playerCenterLocationX] === "E" &&
+          level[playerRightLocationY][playerRightLocationX] === "E") {
+          this.transX += this.dx;
       }
-      else {
-        this.transX += this.dx;
-      }
-      
     }
   }
   rotate() {
@@ -204,6 +220,8 @@ class EnemyTank {
     this.rotateX = mouseX - this.transX;
     this.rotateY = mouseY - this.transY;
     this.rotateAngle = atan2(this.rotateY, this.rotateX) - 90;
+    this.lastShot = 0;
+    this.waitTime = 300;
   }
   display() {
     push();
@@ -219,10 +237,10 @@ class EnemyTank {
     pop();
   }
   shoot() {
-    if (millis() > lastShot + waitTime && dist(mouseX, mouseY, this.transX, this.transY) < 200) {
+    if (millis() > this.lastShot + this.waitTime && dist(mouseX, mouseY, this.transX, this.transY) < 200) { //change 200 to a variable/const
       enemyBullets.push(new Bullet(0, 0, this.transX, this.transY, 1, 5));
       //console.log(enemyBullets);
-      lastShot = millis();
+      this.lastShot = millis();
     }
   }
   rotate() {
@@ -241,15 +259,22 @@ let bullets = [];
 let enemyBullets = [];
 let character, enemy;
 let cellSize;
-let levelToLoad, lines, level;
+let level1, level2, lines, level;
+let loadedLevels = [];
 let lastShot = 0;
-let waitTime = 300;
+let waitTime = 200;
 let wallHealth = 5;
 let brickHealth = 8
 
 function preload() { // either load all levels or search up "callback"
-  levelToLoad = "level1.txt";
-  lines = loadStrings(levelToLoad);
+  level1 = loadStrings("levels/level1.txt");
+  level2 = loadStrings("levels/level2.txt");
+  loadedLevels.push(level1);
+  loadedLevels.push(level2);
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 }
 
 function setup() {
@@ -265,15 +290,15 @@ function setup() {
   transX = cellSize;
   transY = cellSize;
   character = new Player(0, 0, dx, dy, transX, transY, 25);
-  enemy = new EnemyTank(0, 0, (gridSize - 4)*cellSize, cellSize*2, 25)
+  enemyTanks.push(new EnemyTank(0, 0, (gridSize - 4)*cellSize, cellSize*2, 25));
   level = grid(gridSize, gridSize);
   
-  for (let i = 0; i < gridSize; i++) {
-    for (let j = 0; j < gridSize; j++) {
-      let cellType = lines[i][j];
-      level[i][j] = cellType;
-    }
-  }
+  // for (let i = 0; i < gridSize; i++) {
+  //   for (let j = 0; j < gridSize; j++) {
+  //     let cellType = lines[i][j];
+  //     level[i][j] = cellType;
+  //   }
+  // }
 
 }
 
@@ -284,10 +309,13 @@ function draw() {
   bulletDelete();
   perimeterBarrierDetection();
   perimeterBulletDetection();
+  levelSelection();
 
-  enemy.display();
-  //enemy.shoot();
-  enemy.rotate();
+  for (let enemy of enemyTanks) {
+    enemy.display();
+    enemy.shoot();
+    enemy.rotate();
+  }
 
   for (let someBullet of bullets) {
     someBullet.move();
@@ -304,7 +332,11 @@ function draw() {
 }
 
 function mousePressed() {
-  bullets.push(new Bullet(0, 0, character.transX, character.transY, 1, 5));
+  if (millis() > lastShot + waitTime) {
+    bullets.push(new Bullet(0, 0, character.transX, character.transY, 1, 5));
+    lastShot = millis();
+  }
+  
 }
 
 function bulletDelete() {
@@ -315,9 +347,11 @@ function bulletDelete() {
     } 
   }
   for (let someBullet of enemyBullets) {
-    if (dist(enemy.position.x, enemy.position.y, someBullet.position.x, someBullet.position.y) > enemyBulletTravelDistance) {
-      let theIndex = enemyBullets.indexOf(someBullet);
-      enemyBullets.splice(theIndex, 1);
+    for (enemy of enemyTanks) {
+      if (dist(enemy.position.x, enemy.position.y, someBullet.position.x, someBullet.position.y) > enemyBulletTravelDistance) {
+        let theIndex = enemyBullets.indexOf(someBullet);
+        enemyBullets.splice(theIndex, 1);
+      }
     }
   }
 }
@@ -398,6 +432,29 @@ function perimeterBulletDetection() {
       someBullet.locationY + someBullet.size > height - cellSize) {
       enemyBullets.splice(theIndex, 1);
     }
+  }
+}
+
+function levelSelection() { //not very elegant, make it so it switches states so that the player/turrets are not permanently there
+  switch (keyCode) {
+    case 49:
+      lines = loadedLevels[0];
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          let cellType = lines[i][j];
+          level[i][j] = cellType;
+        }
+      }
+      break;
+    case 50:
+      lines = loadedLevels[1];
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          let cellType = lines[i][j];
+          level[i][j] = cellType;
+        }
+      }
+      break;
   }
 }
 
