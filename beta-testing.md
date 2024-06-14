@@ -4,4 +4,4 @@
 
 ## Programmer's advice:
 
-## My known bugs:
+## Newly found bugs:
