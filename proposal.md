@@ -11,15 +11,15 @@ Awesome Tanks-esque game (inspiration: Cool Math Games)
 ## Needs to Have List
 - Sound effects/background music
 - Level selection screen
-- Basic movement
+- Basic movement ✓
   - WASD (up, down, left, right) ✓
   - rotate character orientation based on mouse location ✓
-- Shooting
+- Shooting ✓
   - shooting in the direction of the cursor based on player location ✓
   - stationary enemy turrets that shoot at player upon contact ✓
   - bullets that disappear after a certain distance ✓
 - Level layouts
-  - various "cell" types (indestructible wall, destructible wall, turrets)
+  - various "cell" types (indestructible wall, destructible wall, turrets) ✓
 
 ## Nice to Have List
 - Achievements/stats
