@@ -9,8 +9,8 @@ Awesome Tanks-esque game (inspiration: Cool Math Games)
   is standard WASD, shooting requires mouse click, and the numbers 1-6 are used to switch weapons.
 
 ## Needs to Have List
-- Sound effects/background music
-- Level selection screen
+- Sound effects/background music ✓
+- Level selection screen ✓
 - Basic movement ✓
   - WASD (up, down, left, right) ✓
   - rotate character orientation based on mouse location ✓
